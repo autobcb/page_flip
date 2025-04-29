@@ -315,7 +315,7 @@ class PageFlipWidgetState extends State<PageFlipWidget>
                 if(!_canturn(pageNumber -1)){
                   return;
                 }
-                if(_controllers[pageNumber-1].value < 0.2){
+                if(_controllers[pageNumber-1].value < 0.5){
                   _controllers[pageNumber-1].value = 0;
                   currentPageIndex.value = pageNumber;
                   currentWidget.value = pages[pageNumber];
