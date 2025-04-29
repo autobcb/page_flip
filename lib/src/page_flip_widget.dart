@@ -129,6 +129,7 @@ class PageFlipWidgetState extends State<PageFlipWidget>
         currentPage.value = -1;
       });
     }
+    print("pageNumber:$pageNumber");
   }
 
   int lastPageLoad = 0;
