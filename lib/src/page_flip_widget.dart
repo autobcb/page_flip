@@ -70,7 +70,7 @@ class PageFlipWidgetState extends State<PageFlipWidget>
 
   Widget? prepage= null;
 
-  void refresh({bool isRefresh = true}){
+  void refresh({bool isRefresh = false}){
     _setUp(isRefresh:isRefresh);
   }
 
