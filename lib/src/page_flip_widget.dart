@@ -271,7 +271,7 @@ class PageFlipWidgetState extends State<PageFlipWidget>
               if(!_canturn(pageNumber -1)){
                 return;
               }
-              currentPage.value = pageNumber;
+              currentPage.value = pageNumber-1;
               currentWidget.value = Container();
               final ratio = ( dimens.maxWidth -d.localPosition.dx ) / dimens.maxWidth;
               for(var i =0 ; i< _controllers.length ;i++){

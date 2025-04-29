@@ -72,7 +72,7 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
           print("pageIndex:${widget.pageIndex}");
           return Container();
         }
-        if (imageData[widget.pageIndex] != null && value >= 0) {
+        if (imageData[widget.pageIndex] != null && value  == widget.pageIndex) {
           return CustomPaint(
             painter: PageFlipEffect(
               amount: widget.amount,
