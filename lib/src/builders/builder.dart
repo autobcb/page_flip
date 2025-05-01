@@ -89,9 +89,7 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
         } else {
           if (widget.pageIndex == currentPageIndex.value ) {
             if(imageData[ widget.pageIndex] == null){
-              setState(() {
-                _need=true;
-              });
+              _need=true;
               WidgetsBinding.instance.addPostFrameCallback(
                     (timeStamp) => _captureImage(timeStamp, widget.pageIndex),
               );
