@@ -80,7 +80,9 @@ class PageFlipWidgetState extends State<PageFlipWidget>
     pages.clear();
     List<Widget> items =[];
     for (var i = 0; i < widget.children.length; i++) {
-      items.add(widget.children[i]);
+      items.add( RepaintBoundary(
+        child:widget.children[i],
+      ));
     }
     for (var i = 0; i < widget.children.length; i++) {
       final controller = AnimationController(
