@@ -32,6 +32,7 @@ class PageFlipBuilder extends StatefulWidget {
 
 class PageFlipBuilderState extends State<PageFlipBuilder> {
   final _boundaryKey = GlobalKey();
+  bool _need=false;
 
   void _captureImage(Duration timeStamp, int index) async {
     if (_boundaryKey.currentContext == null) return;
@@ -43,6 +44,9 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
       final image = await boundary.toImage();
       setState(() {
         imageData[index] = image.clone();
+      });
+      setState(() {
+        _need=false;
       });
     }
   }
@@ -85,6 +89,9 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
         } else {
           if (widget.pageIndex == currentPageIndex.value ) {
             if(imageData[ widget.pageIndex] == null){
+              setState(() {
+                _need=true;
+              });
               WidgetsBinding.instance.addPostFrameCallback(
                     (timeStamp) => _captureImage(timeStamp, widget.pageIndex),
               );
@@ -93,6 +100,12 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
 
           if (widget.pageIndex == currentPageIndex.value ||
               (widget.pageIndex == (currentPageIndex.value + 1))) {
+            if(!_need){
+              return ColoredBox(
+                color: widget.backgroundColor ?? Colors.black12,
+                child: widget.pages[widget.pageIndex],
+              );
+            }
             return ColoredBox(
               color: widget.backgroundColor ?? Colors.black12,
               child: RepaintBoundary(
