@@ -40,7 +40,7 @@ class PageFlipBuilderState extends State<PageFlipBuilder> {
       if( _boundaryKey.currentContext == null) return;
       final boundary = _boundaryKey.currentContext!.findRenderObject()!
           as RenderRepaintBoundary;
-      final image = await boundary.toImage(pixelRatio: 5);
+      final image = await boundary.toImage(pixelRatio: 3);
       setState(() {
         imageData[index] = image.clone();
       });
