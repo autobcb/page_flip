@@ -219,7 +219,7 @@ class PageFlipWidgetState extends State<PageFlipWidget>
   }
   Offset _lastPointerDownPosition = Offset.zero;
   bool _isonPointerDown=false;
-
+  bool _needstop=false;
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -231,6 +231,11 @@ class PageFlipWidgetState extends State<PageFlipWidget>
                 return;
               }
             }
+            if(event.position.dx  < 40){
+              _needstop=true;
+              return;
+            }
+            _needstop=false;
             _lastPointerDownPosition = event.position;
             _isonPointerDown=false;
             onPanDown(DragDownDetails(
@@ -243,6 +248,9 @@ class PageFlipWidgetState extends State<PageFlipWidget>
               if(widget.canturn!() == false){
                 return;
               }
+            }
+            if(_needstop){
+              return;
             }
             if(_isonPointerDown){
               onPanUpdate(DragUpdateDetails(
@@ -265,6 +273,9 @@ class PageFlipWidgetState extends State<PageFlipWidget>
               if(widget.canturn!() == false){
                 return;
               }
+            }
+            if(_needstop){
+              return;
             }
             if(_isonPointerDown){
               //_isonPointerDown=false;
