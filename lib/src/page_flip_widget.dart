@@ -5,6 +5,7 @@ import '../page_flip.dart';
 
 class PageFlipWidget extends StatefulWidget {
   final PageFlipController? controller;
+  final bool Function()? canturn;
   const PageFlipWidget({
     Key? key,
     this.duration = const Duration(milliseconds: 450),
@@ -16,6 +17,7 @@ class PageFlipWidget extends StatefulWidget {
     this.onPageFlipped,
     this.onFlipStart,
     this.controller,
+    this.canturn=null,
   })  : assert(initialIndex < children.length,
             'initialIndex cannot be greater than children length'),
         super(key: key);
@@ -215,117 +217,61 @@ class PageFlipWidgetState extends State<PageFlipWidget>
     }
     return widget.onFlipStart!(index);
   }
+  Offset _lastPointerDownPosition = Offset.zero;
+  bool _isonPointerDown=false;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, dimens) {
-        return GestureDetector(
-          onPanDown: (d) {
-            downPos = d.localPosition;
+        return Listener(
+          onPointerDown: (event){
+            if(widget.canturn != null){
+              if(widget.canturn!() == false){
+                return;
+              }
+            }
+            _lastPointerDownPosition = event.position;
+            _isonPointerDown=false;
+            onPanDown(DragDownDetails(
+              globalPosition: event.position,
+              localPosition: event.localPosition,
+            ));
           },
-          onPanUpdate: (d) {
-            if (isAnimation) {
+          onPointerMove: (event){
+            if(widget.canturn != null){
+              if(widget.canturn!() == false){
+                return;
+              }
+            }
+            if(_isonPointerDown){
+              onPanUpdate(DragUpdateDetails(
+                globalPosition: event.position,
+                localPosition: event.localPosition,
+              ),dimens);
               return;
             }
-            if(_type == 0){
-              var yd=downPos.dx - d.localPosition.dx;
-              if(yd > 20 || yd < -20){
-                if(downPos.dx > d.localPosition.dx){
-                  _type=1;
-                }else{
-                  _type=2;
-                }
-              }
-            }
-
-           // print( d.delta.dx );
-
-            //print(_type);
-            final pageLength = pages.length;
-            final pageSize =pageLength - 1;
-            if(_type == 1){
-              if(pageNumber == pageSize){
-                return;
-              }
-              if(!_canturn(pageNumber +1)){
-                return;
-              }
-              currentPage.value = pageNumber;
-              currentWidget.value = Container();
-              final ratio = (downPos.dx -d.localPosition.dx ) / dimens.maxWidth;
-              for(var i =0 ; i< _controllers.length ;i++){
-                if(i < pageNumber){
-                  _controllers[i].value = 0;
-                }else if(i  == pageNumber){
-                  _controllers[i].value = 1-ratio;
-                }else{
-                  _controllers[i].value = 1;
-                }
-              }
-            }
-            if(_type == 2){
-              if(pageNumber == 0){
-                return;
-              }
-              if(!_canturn(pageNumber -1)){
-                return;
-              }
-              currentPage.value = pageNumber-1;
-              currentWidget.value = Container();
-              final ratio = ( dimens.maxWidth -d.localPosition.dx ) / dimens.maxWidth;
-              for(var i =0 ; i< _controllers.length ;i++){
-                if(i < pageNumber-1){
-                  _controllers[i].value = 0;
-                }else if(i  == pageNumber-1){
-                  _controllers[i].value = 1-ratio;
-                }else{
-                  _controllers[i].value = 1;
-                }
-              }
+            final distance = (event.position - _lastPointerDownPosition).distance;
+            if(distance > 10){
+              _isonPointerDown=true;
+              onPanUpdate(DragUpdateDetails(
+                globalPosition: event.position,
+                localPosition: event.localPosition,
+              ),dimens);
             }
           },
-          onPanEnd: (d) {
-            if (isAnimation) {
-              return;
+          onPointerUp: (event){
+            if(widget.canturn != null){
+              if(widget.canturn!() == false){
+                return;
+              }
             }
-            try{
-              final pageLength = pages.length;
-              final pageSize =pageLength - 1;
-              if(_type == 1){
-                if(pageNumber == pageSize){
-                  return;
-                }
-                if(!_canturn(pageNumber +1)){
-                  return;
-                }
-                if( _controllers[pageNumber].value > 0.95){
-                  _controllers[pageNumber].value = 1;
-                  currentPageIndex.value = pageNumber;
-                  currentWidget.value = pages[pageNumber];
-                  currentPage.value = -1;
-                  return;
-                }
-                nextPage();
-              }
-              if(_type == 2){
-                if(pageNumber == 0){
-                  return;
-                }
-                if(!_canturn(pageNumber -1)){
-                  return;
-                }
-                if(_controllers[pageNumber-1].value < 0.5){
-                  _controllers[pageNumber-1].value = 0;
-                  currentPageIndex.value = pageNumber;
-                  currentWidget.value = pages[pageNumber];
-                  currentPage.value = -1;
-                  return;
-                }
-                previousPage();
-              }
-            }finally{
-              _type=0;
+            if(_isonPointerDown){
+              //_isonPointerDown=false;
+              onPanEnd(DragEndDetails(
+                globalPosition: event.position,
+                localPosition: event.localPosition,
+              ));
             }
           },
           child: Stack(
@@ -341,7 +287,119 @@ class PageFlipWidgetState extends State<PageFlipWidget>
       },
     );
   }
+
+  void onPanDown(d) {
+    downPos = d.localPosition;
+  }
+
+  void onPanUpdate(d,dimens) {
+    if (isAnimation) {
+      return;
+    }
+    if(_type == 0){
+      var yd=downPos.dx - d.localPosition.dx;
+      if(yd > 20 || yd < -20){
+        if(downPos.dx > d.localPosition.dx){
+          _type=1;
+        }else{
+          _type=2;
+        }
+      }
+    }
+
+    // print( d.delta.dx );
+
+    //print(_type);
+    final pageLength = pages.length;
+    final pageSize =pageLength - 1;
+    if(_type == 1){
+      if(pageNumber == pageSize){
+        return;
+      }
+      if(!_canturn(pageNumber +1)){
+        return;
+      }
+      currentPage.value = pageNumber;
+      currentWidget.value = Container();
+      final ratio = (downPos.dx -d.localPosition.dx ) / dimens.maxWidth;
+      for(var i =0 ; i< _controllers.length ;i++){
+        if(i < pageNumber){
+          _controllers[i].value = 0;
+        }else if(i  == pageNumber){
+          _controllers[i].value = 1-ratio;
+        }else{
+          _controllers[i].value = 1;
+        }
+      }
+    }
+    if(_type == 2){
+      if(pageNumber == 0){
+        return;
+      }
+      if(!_canturn(pageNumber -1)){
+        return;
+      }
+      currentPage.value = pageNumber-1;
+      currentWidget.value = Container();
+      final ratio = ( dimens.maxWidth -d.localPosition.dx ) / dimens.maxWidth;
+      for(var i =0 ; i< _controllers.length ;i++){
+        if(i < pageNumber-1){
+          _controllers[i].value = 0;
+        }else if(i  == pageNumber-1){
+          _controllers[i].value =  (1 -  ratio).toDouble();
+        }else{
+          _controllers[i].value = 1;
+        }
+      }
+    }
+  }
+
+  void onPanEnd(d) {
+    if (isAnimation) {
+      return;
+    }
+    try{
+      final pageLength = pages.length;
+      final pageSize =pageLength - 1;
+      if(_type == 1){
+        if(pageNumber == pageSize){
+          return;
+        }
+        if(!_canturn(pageNumber +1)){
+          return;
+        }
+        if( _controllers[pageNumber].value > 0.95){
+          _controllers[pageNumber].value = 1;
+          currentPageIndex.value = pageNumber;
+          currentWidget.value = pages[pageNumber];
+          currentPage.value = -1;
+          return;
+        }
+        nextPage();
+      }
+      if(_type == 2){
+        if(pageNumber == 0){
+          return;
+        }
+        if(!_canturn(pageNumber -1)){
+          return;
+        }
+        if(_controllers[pageNumber-1].value < 0.5){
+          _controllers[pageNumber-1].value = 0;
+          currentPageIndex.value = pageNumber;
+          currentWidget.value = pages[pageNumber];
+          currentPage.value = -1;
+          return;
+        }
+        previousPage();
+      }
+    }finally{
+      _type=0;
+    }
+  }
 }
+
+
 
 class PageFlipController {
   PageFlipWidgetState? _state;
